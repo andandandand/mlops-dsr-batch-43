@@ -1,6 +1,11 @@
 import os
 import wandb
 from loadotenv import load_env
+from torchvision.models import resnet18, ResNet
+from torch import nn
+from pathlib import Path
+import torch
+
 
 # this gives us access to the variables in .env file
 load_env()
@@ -13,6 +18,7 @@ MODEL_FILENAME = "best_model.pth"
 os.makedirs(MODELS_DIR, exist_ok=True)
 
 def download_artifact():
+    '''Download the trained model weights from Weights & Biases'''
     assert 'WANDB_API_KEY' in os.environ, "WANDB_API_KEY not found in environment variables"
     wandb.login(key=wandb_api_key)
     api = wandb.Api()
@@ -28,4 +34,23 @@ def download_artifact():
     artifact = api.artifact(artifact_path, type='model')
     artifact.download(root=MODELS_DIR)
 
-download_artifact()
+def get_raw_model() -> ResNet:
+     '''Get the architecture of the model (random weights), this must match the architecture used during training'''
+     architecture = resnet18(weights=None)
+     architecture.fc = nn.Sequential(
+         nn.Linear(in_features=512, out_features=512),
+         nn.ReLU(),
+         nn.Linear(in_features=512, out_features=6)
+     )
+     
+     return architecture 
+ 
+ 
+def load_model() -> ResNet:
+    '''Gives us the model with the trained weights'''
+    download_artifact()
+    model = get_raw_model()
+    
+    model_state_dict_path = Path(MODELS_DIR) / MODEL_FILENAME
+    model.load_state_dict(torch.load(model_state_dict_path, map_location='cpu'))
+    return model
