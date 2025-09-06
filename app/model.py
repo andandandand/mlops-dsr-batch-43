@@ -49,8 +49,19 @@ def get_raw_model() -> ResNet:
 def load_model() -> ResNet:
     '''Gives us the model with the trained weights'''
     download_artifact()
+    # This gets the model architecture with random weights
     model = get_raw_model()
     
+    # This loads the weights from the file into a state dictionary
     model_state_dict_path = Path(MODELS_DIR) / MODEL_FILENAME
-    model.load_state_dict(torch.load(model_state_dict_path, map_location='cpu'))
+    model_state_dict = torch.load(model_state_dict_path, map_location='cpu')
+    # This merges the trained weights into the model architecture so that it no longer has random weights
+    model.load_state_dict(model_state_dict, strict=True)
+    # Turn off Dropout and BatchNorm uses stats from training
+    # IMPORTANT: must be done before inference
+    model.eval()
+    
     return model
+
+live_resnet = load_model()
+print(live_resnet)
