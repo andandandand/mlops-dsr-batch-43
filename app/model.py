@@ -5,7 +5,7 @@ from torchvision.models import resnet18, ResNet
 from torch import nn
 from pathlib import Path
 import torch
-from torchvision.transforms.v2 import v2 as transforms
+from torchvision.transforms import v2 as transforms
 
 
 # this gives us access to the variables in .env file
