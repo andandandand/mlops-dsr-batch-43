@@ -5,6 +5,7 @@ from torchvision.models import resnet18, ResNet
 from torch import nn
 from pathlib import Path
 import torch
+from torchvision.transforms.v2 import v2 as transforms
 
 
 # this gives us access to the variables in .env file
@@ -63,5 +64,15 @@ def load_model() -> ResNet:
     
     return model
 
-live_resnet = load_model()
-print(live_resnet)
+
+def load_transforms() -> transforms.Compose:
+    return transforms.Compose(
+        [
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToImage(),
+            transforms.ToDtype(torch.float32, scale=True),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], 
+                                 std=[0.229, 0.224, 0.225]),
+        ]
+    )
